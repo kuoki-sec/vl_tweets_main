@@ -27,6 +27,9 @@ oauth_token_secret = config["oauth.accessTokenSecret"];
 
 Net::HTTP.version_1_2;
 
+#つぶやかない対象
+untweetlist = [ "【ニコ生/リクエスト】","【ニコ生】"]
+
 # 現在時間、いつからいつまでの予定を呟き対象とするかの時間
 now = DateTime.now()
 totime = now + Rational(1, 24) * 4
@@ -45,7 +48,6 @@ query_string = query_hash.map{ |key,value|
 
 res = nil;
 
-begin
 begin
 
         # Google Feedを利用して予定を取得
@@ -94,6 +96,7 @@ document.elements.each('feed/entry') do |entry|
                 end
 
         end
+
         starttimeStr = time.attributes['startTime'];
         endtimeStr = time.attributes['endTime'];
         timeEvent = starttimeStr.count('T') > 0;
@@ -106,7 +109,9 @@ document.elements.each('feed/entry') do |entry|
         puts starttime;
         puts url;
 
-        if fromtime < starttime and starttime <= totime then
+        #対象時間帯とつぶやかないリストに載っていないものをツイート
+        if fromtime < starttime and starttime <= totime and
+           untweetlist.any?{|s|title.include?(s)} == false then
 
                 tweetsStr = nil;
                 puts '--つぶやき対象--';
