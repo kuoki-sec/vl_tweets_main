@@ -117,18 +117,25 @@ document.elements.each('feed/entry') do |entry|
                 puts '--つぶやき対象--';
 
                 ###接頭修飾###
-                tweetsStr = '★ INFO ★ '
-                if now.day.to_s == starttime.strftime('%d').to_s then
-                        tweetsStr = tweetsStr + '本日 '
+                tweetsStr = '◆INFO◆'
+                if now.day == starttime.day then
+                        tweetsStr = tweetsStr + ' 本日'
                 else
-                        tweetsStr = tweetsStr + '明日 '
+                        tweetsStr = tweetsStr + ' 明日'
                 end
 
-                ###日付・日時###
+                ###日付###
+                tweetsStr = tweetsStr + starttime.strftime('%-m月%-d日 ');
+
+                ###時・分###
                 if timeEvent then
-                        tweetsStr = tweetsStr + starttime.strftime('%m月%d日 %H時%M分から ');
-                else
-                        tweetsStr = tweetsStr + starttime.strftime('%m月%d日 ');
+                        tweetsStr = tweetsStr + starttime.strftime('%-H時');
+
+                        if starttime.min != 0 then
+                              tweetsStr = tweetsStr + starttime.strftime('%-M分')
+                        end
+
+                        tweetsStr = tweetsStr + 'から '
                 end
 
                 ###タイトル###
