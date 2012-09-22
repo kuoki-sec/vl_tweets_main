@@ -28,7 +28,8 @@ oauth_token_secret = config["oauth.accessTokenSecret"];
 Net::HTTP.version_1_2;
 
 #つぶやかない対象
-untweetlist = [ "【ニコ生/リクエスト】","【ニコ生】"]
+#試用期間中は全部つぶやけ
+untweetlist = [ "【XXXXXXXXXXX】","【ZZZZZZZZZZ】" ]
 
 # 現在時間、いつからいつまでの予定を呟き対象とするかの時間
 now = DateTime.now()
@@ -56,9 +57,8 @@ begin
         https.verify_mode = OpenSSL::SSL::VERIFY_NONE;
         https.verify_depth = 5;
         https.start {
-                res = https.get('/calendar/feeds/0mprpb041vjq02lk80vtu6ajgo@group.calendar.google.com/public/full?' + query_string).body;
+                res = https.get('/calendar/feeds/' + ARGV[0] + '/public/full?' + query_string).body;
         }
-
 rescue Exception
   puts $!;
 end
