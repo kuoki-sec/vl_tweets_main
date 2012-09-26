@@ -19,7 +19,7 @@ proxy_host = nil;
 proxy_port = 8080;
 
 # ”FØİ’è
-config = YAML.load_file("/var/local/common_service/conf/kuoki_sec_twitter.yaml")
+config = YAML.load_file("/var/local/common_service/conf/vocalendar_twitter.yaml")
 consumer_key = config["oauth.consumerKey"];
 consumer_secret = config["oauth.consumerSecret"];
 oauth_token = config["oauth.accessToken"];
@@ -28,7 +28,7 @@ oauth_token_secret = config["oauth.accessTokenSecret"];
 Net::HTTP.version_1_2;
 
 #‚Â‚Ô‚â‚©‚È‚¢‘ÎÛ
-#—pŠúŠÔ’†‚Í‘S•”‚Â‚Ô‚â‚¯
+#™ê‚«‚½‚­‚È‚¢ƒ[ƒh‚Í‚±‚±‚É“ü‚ê‚Ä‚Ë
 untweetlist = [ "yXXXXXXXXXXXz","yZZZZZZZZZZz" ]
 
 # Œ»İŠÔA‚¢‚Â‚©‚ç‚¢‚Â‚Ü‚Å‚Ì—\’è‚ğ™ê‚«‘ÎÛ‚Æ‚·‚é‚©‚ÌŠÔ
@@ -91,10 +91,9 @@ document.elements.each('feed/entry') do |entry|
 
         url = '';
         entry.elements.each('link') do |link|
-                if link.attributes['rel'] == 'alternate' then
-                        url = link.attributes['href'];
+                if link.attributes['rel'] == 'self' then
+                        url = 'http://vocalendar.jp/detail/?feedurl=' + link.attributes['href'];
                 end
-
         end
 
         starttimeStr = time.attributes['startTime'];
