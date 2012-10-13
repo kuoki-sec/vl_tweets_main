@@ -14,24 +14,31 @@ require 'active_support'
 require 'twitter'
 require 'pp'
 
-# Proxyİ’èi•s—v‚È‚çAproxy_host‚ğnil‚Éİ’è
+# Proxyè¨­å®šï¼ˆä¸è¦ãªã‚‰ã€proxy_hostã‚’nilã«è¨­å®š
 proxy_host = nil;
 proxy_port = 8080;
 
-# ”FØİ’è
+# èªè¨¼è¨­å®š
 config = YAML.load_file("/var/local/common_service/conf/vocalendar_twitter.yaml")
 consumer_key = config["oauth.consumerKey"];
 consumer_secret = config["oauth.consumerSecret"];
 oauth_token = config["oauth.accessToken"];
 oauth_token_secret = config["oauth.accessTokenSecret"];
 
+# ãƒ„ã‚¤ãƒ¼ãƒˆå†…å®¹æ¯è¨­å®š
+# è¨­å®šãƒ•ã‚¡ã‚¤ãƒ«ãƒ‘ã‚¹ã¯ç¬¬ä¸€å¼•æ•°ã«è¨­å®š
+config2 = YAML.load_file(ARGV[0])
+gmail_id = config2["gmail_id"]
+
 Net::HTTP.version_1_2;
 
-#‚Â‚Ô‚â‚©‚È‚¢‘ÎÛ
-#™ê‚«‚½‚­‚È‚¢ƒ[ƒh‚Í‚±‚±‚É“ü‚ê‚Ä‚Ë
-untweetlist = [ "yXXXXXXXXXXXz","yZZZZZZZZZZz" ]
+Net::HTTP.version_1_2;
 
-# Œ»İŠÔA‚¢‚Â‚©‚ç‚¢‚Â‚Ü‚Å‚Ì—\’è‚ğ™ê‚«‘ÎÛ‚Æ‚·‚é‚©‚ÌŠÔ
+#ã¤ã¶ã‚„ã‹ãªã„å¯¾è±¡
+#å‘ŸããŸããªã„ãƒ¯ãƒ¼ãƒ‰ã¯ã“ã“ã«å…¥ã‚Œã¦ã­
+untweetlist = [ "ã€XXXXXXXXXXXã€‘","ã€ZZZZZZZZZZã€‘" ]
+
+# ç¾åœ¨æ™‚é–“ã€ã„ã¤ã‹ã‚‰ã„ã¤ã¾ã§ã®äºˆå®šã‚’å‘Ÿãå¯¾è±¡ã¨ã™ã‚‹ã‹ã®æ™‚é–“
 now = DateTime.now()
 totime = now + Rational(1, 24) * 4
 fromtime = totime - Rational(1, 24 * 60 ) * 10
@@ -41,8 +48,8 @@ puts now
 puts fromtime
 puts totime
 
-# ƒJƒŒƒ“ƒ_[‚Ì—\’è‚Ìæ“¾ğŒ
-# ¶‚©‚çAŠJn‡AŒ»İ‚©‚ç‚Ì—\’èA¸‡AŒJ‚è•Ô‚µ—\’è‚ğ1‚Â‚¸‚Âæ“¾
+# ã‚«ãƒ¬ãƒ³ãƒ€ãƒ¼ã®äºˆå®šã®å–å¾—æ¡ä»¶
+# å·¦ã‹ã‚‰ã€é–‹å§‹æ™‚åˆ»é †ã€ç¾åœ¨æ™‚åˆ»ã‹ã‚‰ã®äºˆå®šã€æ˜‡é †ã€ç¹°ã‚Šè¿”ã—äºˆå®šã‚’1ã¤ãšã¤å–å¾—
 query_hash = { 'orderby' => 'starttime', 'start-min' => now.new_offset.strftime('%FT%T'), 'sortorder' => 'a', 'singleevents' => 'true'};
 query_string = query_hash.map{ |key,value|
         "#{URI.encode(key)}=#{URI.encode(value)}" }.join("&");
@@ -51,101 +58,68 @@ res = nil;
 
 begin
 
-        # Google Feed‚ğ—˜—p‚µ‚Ä—\’è‚ğæ“¾
+        # Google Feedã‚’åˆ©ç”¨ã—ã¦äºˆå®šã‚’å–å¾—
         https = Net::HTTP::Proxy( proxy_host, proxy_port).new('www.google.com', 443);
         https.use_ssl = true;
         https.verify_mode = OpenSSL::SSL::VERIFY_NONE;
         https.verify_depth = 5;
-        https.start {
-                res = https.get('/calendar/feeds/' + ARGV[0] + '/public/full?' + query_string).body;
-        }
-rescue Exception
-  puts $!;
-end
+#! /usr/local/bin/ruby
+# -*- encoding: utf-8 -*-
+#
+# Vocalendar bot | Twitter Developers
+# https://dev.twitter.com/apps/1995843/show
 
-# XML‚ğƒp[ƒX
-document = REXML::Document.new(res);
-if document.elements.to_a('feed/entry').size == 0 then
-        # ‚Â‚Ô‚â‚«‚ª‚È‚¯‚ê‚ÎI—¹
-        puts "‘ÎÛ‚È‚µ";
-        exit(true);
-end
+require 'yaml'
+require 'rubygems';
+require 'net/https';
+require 'uri';
+require 'rexml/document';
+require 'date'
+require 'active_support'
+require 'twitter'
+require 'pp'
 
-# Twitter ƒƒOƒCƒ“
-Twitter.configure do |config|
-  config.consumer_key = consumer_key;
-  config.consumer_secret = consumer_secret;
-  config.oauth_token = oauth_token
-  config.oauth_token_secret = oauth_token_secret
-  if proxy_host != nil then
-          config.proxy = 'http://' + proxy_host + ':' + proxy_port.to_s
-  end
-end
+# Proxyè¨­å®šï¼ˆä¸è¦ãªã‚‰ã€proxy_hostã‚’nilã«è¨­å®š
+proxy_host = nil;
+proxy_port = 8080;
 
-# —\’è‚Ì”‚¾‚¯ŒJ‚è•Ô‚·
-document.elements.each('feed/entry') do |entry|
+# èªè¨¼è¨­å®š
+config = YAML.load_file("/var/local/common_service/conf/vocalendar_twitter.yaml")
+consumer_key = config["oauth.consumerKey"];
+consumer_secret = config["oauth.consumerSecret"];
+oauth_token = config["oauth.accessToken"];
+oauth_token_secret = config["oauth.accessTokenSecret"];
 
-        title = entry.elements['title'].text;
+# ãƒ„ã‚¤ãƒ¼ãƒˆå†…å®¹æ¯è¨­å®š
+# è¨­å®šãƒ•ã‚¡ã‚¤ãƒ«ãƒ‘ã‚¹ã¯ç¬¬ä¸€å¼•æ•°ã«è¨­å®š
+config2 = YAML.load_file(ARGV[0])
+gmail_id = config2["gmail_id"]
 
-        time = entry.elements['gd:when'];
+Net::HTTP.version_1_2;
 
-        url = '';
-        entry.elements.each('link') do |link|
-                if link.attributes['rel'] == 'self' then
-                        url = 'http://vocalendar.jp/detail/?feedurl=' + link.attributes['href'];
-                end
-        end
+                ###æ—¥ä»˜###
+                tweetsStr = tweetsStr + starttime.strftime('%-mæœˆ%-dæ—¥ ');
 
-        starttimeStr = time.attributes['startTime'];
-        endtimeStr = time.attributes['endTime'];
-        timeEvent = starttimeStr.count('T') > 0;
-        if !timeEvent then
-                starttimeStr = starttimeStr + 'T00:00:00+09:00';
-        end
-        starttime = DateTime.rfc3339(starttimeStr);
-
-        puts title;
-        puts starttime;
-        puts url;
-
-        #‘ÎÛŠÔ‘Ñ‚Æ‚Â‚Ô‚â‚©‚È‚¢ƒŠƒXƒg‚ÉÚ‚Á‚Ä‚¢‚È‚¢‚à‚Ì‚ğƒcƒC[ƒg
-        if fromtime < starttime and starttime <= totime and
-           untweetlist.any?{|s|title.include?(s)} == false then
-
-                tweetsStr = nil;
-                puts '--‚Â‚Ô‚â‚«‘ÎÛ--';
-
-                ###Ú“ªCü###
-                tweetsStr = 'ŸINFOŸ'
-                if now.day == starttime.day then
-                        tweetsStr = tweetsStr + ' –{“ú'
-                else
-                        tweetsStr = tweetsStr + ' –¾“ú'
-                end
-
-                ###“ú•t###
-                tweetsStr = tweetsStr + starttime.strftime('%-mŒ%-d“ú ');
-
-                ###E•ª###
+                ###æ™‚ãƒ»åˆ†###
                 if timeEvent then
-                        tweetsStr = tweetsStr + starttime.strftime('%-H');
+                        tweetsStr = tweetsStr + starttime.strftime('%-Hæ™‚');
 
                         if starttime.min != 0 then
-                              tweetsStr = tweetsStr + starttime.strftime('%-M•ª')
+                              tweetsStr = tweetsStr + starttime.strftime('%-Måˆ†')
                         end
 
-                        tweetsStr = tweetsStr + '‚©‚ç '
+                        tweetsStr = tweetsStr + 'ã‹ã‚‰ '
                 end
 
-                ###ƒ^ƒCƒgƒ‹###
-                #50‚ÅØ‚Á‚½‚Ì‚Íƒƒ“ƒVƒ‡ƒ“‚ÌƒcƒC[ƒg‚ğŠú‘Ò‚µ‚Ä‚¢‚éˆ×‚Å‚·
+                ###ã‚¿ã‚¤ãƒˆãƒ«###
+                #50ã§åˆ‡ã£ãŸã®ã¯ãƒ¡ãƒ³ã‚·ãƒ§ãƒ³ã®ãƒ„ã‚¤ãƒ¼ãƒˆã‚’æœŸå¾…ã—ã¦ã„ã‚‹ç‚ºã§ã™
                 if title.split(//).size > 50 then
                         tweetsStr = tweetsStr + title[0,50] + '...'
                 else
                         tweetsStr = tweetsStr + title
                 end
 
-                ###URLAƒnƒbƒVƒ…ƒ^ƒO###
+                ###URLã€ãƒãƒƒã‚·ãƒ¥ã‚¿ã‚°###
                 tweetsStr = tweetsStr + ' ' + url + ' #vocalendar'
 
                 puts tweetsStr
